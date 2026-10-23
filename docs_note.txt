@@ -1,0 +1,5 @@
+- Promt plan: đóng vai trò Senior lên kết hoạch, API Contract dựa trên slide, folder structure
+=> actual: file missing, suggest structure, plan + contract
+- Promt setup project base plans + api contract => actual: setup project + contract
+- Promt Database with SQL => actual: SQL script create tables, connect database
+- Promt 
