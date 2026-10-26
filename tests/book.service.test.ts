@@ -406,9 +406,9 @@ describe("BookService", () => {
       repo.countActiveLoans.mockResolvedValue(0);
       repo.update.mockRejectedValue(dupError);
 
-      await expect(
-        service.updateBook(1, { title: "New Title" }),
-      ).rejects.toBe(dupError);
+      await expect(service.updateBook(1, { title: "New Title" })).rejects.toBe(
+        dupError,
+      );
     });
 
     it("TC37: should propagate ISBN lookup errors during update", async () => {
@@ -416,17 +416,15 @@ describe("BookService", () => {
       repo.findById.mockResolvedValue(book);
       repo.findByIsbn.mockRejectedValue(error);
 
-      await expect(
-        service.updateBook(1, { isbn: "NEW-ISBN" }),
-      ).rejects.toBe(error);
+      await expect(service.updateBook(1, { isbn: "NEW-ISBN" })).rejects.toBe(
+        error,
+      );
 
       expect(repo.update).not.toHaveBeenCalled();
     });
 
     it("TC38: should throw NotFoundError if book disappears after update", async () => {
-      repo.findById
-        .mockResolvedValueOnce(book)
-        .mockResolvedValueOnce(null);
+      repo.findById.mockResolvedValueOnce(book).mockResolvedValueOnce(null);
       repo.countActiveLoans.mockResolvedValue(0);
       repo.update.mockResolvedValue(undefined);
 

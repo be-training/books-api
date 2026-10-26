@@ -31,58 +31,63 @@ All error responses (4xx and 5xx) must follow this consistent envelope:
 ```
 
 ### Common Error Codes
-| HTTP Status | Error Code | Description |
-| :--- | :--- | :--- |
-| **400 Bad Request** | `VALIDATION_ERROR` | Request query, params, or body failed validation schema |
-| **404 Not Found** | `BOOK_NOT_FOUND` | Book with the specified ID does not exist |
-| **409 Conflict** | `BOOK_HAS_ACTIVE_LOANS` | Cannot delete book while copies are currently on loan |
-| **409 Conflict** | `ISBN_ALREADY_EXISTS` | A book with this ISBN already exists (on create or update) |
-| **409 Conflict** | `COPIES_LESS_THAN_ACTIVE_LOANS` | Cannot reduce totalCopies below the number of currently active loans |
-| **500 Internal Server Error** | `INTERNAL_SERVER_ERROR` | Unexpected server or database error |
+
+| HTTP Status                   | Error Code                      | Description                                                          |
+| :---------------------------- | :------------------------------ | :------------------------------------------------------------------- |
+| **400 Bad Request**           | `VALIDATION_ERROR`              | Request query, params, or body failed validation schema              |
+| **404 Not Found**             | `BOOK_NOT_FOUND`                | Book with the specified ID does not exist                            |
+| **409 Conflict**              | `BOOK_HAS_ACTIVE_LOANS`         | Cannot delete book while copies are currently on loan                |
+| **409 Conflict**              | `ISBN_ALREADY_EXISTS`           | A book with this ISBN already exists (on create or update)           |
+| **409 Conflict**              | `COPIES_LESS_THAN_ACTIVE_LOANS` | Cannot reduce totalCopies below the number of currently active loans |
+| **500 Internal Server Error** | `INTERNAL_SERVER_ERROR`         | Unexpected server or database error                                  |
 
 ---
 
 ## 3. Data Models (Aligned with Library Admin UI)
 
-### 3.1. Book Item (List Representation)
+### 3.1. Book (List Representation)
+
 ```typescript
-interface BookItem {
+interface Boo {
   id: number;
-  title: string;              // e.g. "The Pragmatic Programmer"
-  author: string;             // e.g. "David Thomas, Andrew Hunt"
-  publishedYear: number;      // e.g. 2019
-  isbn: string;               // e.g. "978-0-13-595705-9"
-  publisher: string;          // e.g. "Addison-Wesley"
-  edition: string;            // e.g. "20th Anniversary Edition"
-  description: string;        // e.g. "[Short description of the book]"
-  totalCopies: number;        // e.g. 5
-  tags: string[];             // e.g. ["Programming", "Career"]
+  title: string; // e.g. "The Pragmatic Programmer"
+  author: string; // e.g. "David Thomas, Andrew Hunt"
+  publishedYear: number; // e.g. 2019
+  isbn: string; // e.g. "978-0-13-595705-9"
+  publisher: string; // e.g. "Addison-Wesley"
+  edition: string; // e.g. "20th Anniversary Edition"
+  description: string; // e.g. "[Short description of the book]"
+  totalCopies: number; // e.g. 5
+  tags: string[]; // e.g. ["Programming", "Career"]
   status: "AVAILABLE" | "OUT_OF_STOCK" | "ARCHIVED"; // UI badge: "Available"
-  addedOn: string;            // e.g. "2026-09-12"
+  addedOn: string; // e.g. "2026-09-12"
   createdAt: string;
   updatedAt: string;
 }
 ```
 
 ### 3.2. Book Detail (Detail Screen & Stock Calculation)
+
 ```typescript
-interface BookDetail extends BookItem {
-  onLoan: number;             // Count of active/overdue loans (e.g. 3)
-  available: number;          // totalCopies - onLoan (e.g. 2)
+interface BookDetail extends Boo {
+  onLoan: number; // Count of active/overdue loans (e.g. 3)
+  available: number; // totalCopies - onLoan (e.g. 2)
 }
 ```
 
-### 3.3. Loan Item (Loan History Screen)
+### 3.3. Loan (Loan History Screen)
+
 Matches columns: **MEMBER**, **BORROWED**, **DUE**, **RETURNED**, **STATUS**
+
 ```typescript
 interface Loan {
   id: number;
   bookId: number;
   memberId: number;
-  memberName: string;         // Column MEMBER, e.g. "Minh Tran"
-  borrowedDate: string;       // Column BORROWED (YYYY-MM-DD), e.g. "2026-10-15"
-  dueDate: string;            // Column DUE (YYYY-MM-DD), e.g. "2026-10-29"
-  returnedDate: string | null;// Column RETURNED (YYYY-MM-DD or null for "—"), e.g. "2026-10-03"
+  memberName: string; // Column MEMBER, e.g. "Minh Tran"
+  borrowedDate: string; // Column BORROWED (YYYY-MM-DD), e.g. "2026-10-15"
+  dueDate: string; // Column DUE (YYYY-MM-DD), e.g. "2026-10-29"
+  returnedDate: string | null; // Column RETURNED (YYYY-MM-DD or null for "—"), e.g. "2026-10-03"
   status: "ACTIVE" | "OVERDUE" | "RETURNED"; // Column STATUS: "Active", "Overdue", "Returned"
 }
 ```
@@ -92,17 +97,19 @@ interface Loan {
 ## 4. Endpoints Specification
 
 ### 4.1. `GET /books`
+
 Search, filter, and paginate books for the Library Admin table.
 
 - **Sorting**: Default sorting is `ORDER BY id DESC` (newest first) to ensure consistent table pagination.
 - **Query Parameters**:
-  - `q` *(optional, string)*: Case-insensitive search on `title` or `author`.
-  - `tag` *(optional, string)*: Filter books containing this tag (e.g. `Programming`).
-  - `status` *(optional, string)*: Filter by status (`AVAILABLE`, `OUT_OF_STOCK`, `ARCHIVED`).
-  - `page` *(optional, integer, default: 1, min: 1)*: Current page number.
-  - `limit` *(optional, integer, default: 10, min: 1, max: 100)*: Items per page.
+  - `q` _(optional, string)_: Case-insensitive search on `title` or `author`.
+  - `tag` _(optional, string)_: Filter books containing this tag (e.g. `Programming`).
+  - `status` _(optional, string)_: Filter by status (`AVAILABLE`, `OUT_OF_STOCK`, `ARCHIVED`).
+  - `page` _(optional, integer, default: 1, min: 1)_: Current page number.
+  - `limit` _(optional, integer, default: 10, min: 1, max: 100)_: Items per page.
 
 - **Response `200 OK`**:
+
 ```json
 {
   "data": [
@@ -132,12 +139,14 @@ Search, filter, and paginate books for the Library Admin table.
 ---
 
 ### 4.2. `GET /books/:id`
+
 Retrieve detailed information for a single book (matching Book Information & Stock cards).
 
 - **URL Parameters**:
-  - `id` *(required, integer)*: Book ID.
+  - `id` _(required, integer)_: Book ID.
 
 - **Response `200 OK`**:
+
 ```json
 {
   "id": 1,
@@ -160,6 +169,7 @@ Retrieve detailed information for a single book (matching Book Information & Sto
 ```
 
 - **Response `404 Not Found`**:
+
 ```json
 {
   "error": {
@@ -173,15 +183,17 @@ Retrieve detailed information for a single book (matching Book Information & Sto
 ---
 
 ### 4.3. `GET /books/:id/loans`
+
 Retrieve the loan history for a specific book (matching Loan History table).
 
 - **URL Parameters**:
-  - `id` *(required, integer)*: Book ID.
+  - `id` _(required, integer)_: Book ID.
 
 - **Business Constraint**:
   - If the book with the specified `id` does NOT exist, the endpoint **must return 404 BOOK_NOT_FOUND** (not an empty array `[]`).
 
 - **Response `200 OK`**:
+
 ```json
 {
   "data": [
@@ -240,6 +252,7 @@ Retrieve the loan history for a specific book (matching Loan History table).
 ```
 
 - **Response `404 Not Found`**:
+
 ```json
 {
   "error": {
@@ -253,9 +266,11 @@ Retrieve the loan history for a specific book (matching Loan History table).
 ---
 
 ### 4.4. `POST /books`
+
 Create a new book record.
 
 - **Request Body**:
+
 ```json
 {
   "title": "The Pragmatic Programmer",
@@ -285,6 +300,7 @@ Create a new book record.
 
 - **Response `201 Created`**: Returns created BookItem.
 - **Response `409 Conflict` (Duplicate ISBN)**:
+
 ```json
 {
   "error": {
@@ -301,12 +317,14 @@ Create a new book record.
 ---
 
 ### 4.5. `PATCH /books/:id`
+
 Update an existing book record.
 
 - **URL Parameters**:
-  - `id` *(required, integer)*: Book ID.
+  - `id` _(required, integer)_: Book ID.
 
-- **Request Body** *(All fields optional)*:
+- **Request Body** _(All fields optional)_:
+
 ```json
 {
   "title": "The Pragmatic Programmer (Special Edition)",
@@ -324,6 +342,7 @@ Update an existing book record.
 - **Response `200 OK`**: Updated Book object.
 - **Response `404 Not Found`**: When book does not exist.
 - **Response `409 Conflict` (Total copies < active loans)**:
+
 ```json
 {
   "error": {
@@ -337,7 +356,9 @@ Update an existing book record.
   }
 }
 ```
+
 - **Response `409 Conflict` (Duplicate ISBN)**:
+
 ```json
 {
   "error": {
@@ -354,16 +375,18 @@ Update an existing book record.
 ---
 
 ### 4.6. `DELETE /books/:id`
+
 Delete a book.
 
 - **URL Parameters**:
-  - `id` *(required, integer)*: Book ID.
+  - `id` _(required, integer)_: Book ID.
 
 - **Business Logic Constraint**:
   - If `onLoan > 0` (there are active loans with `status IN ('ACTIVE', 'OVERDUE')` or `returnedDate IS NULL`), deletion **must fail**.
 
 - **Response `204 No Content`**: Deletion successful.
 - **Response `409 Conflict`**:
+
 ```json
 {
   "error": {
@@ -376,4 +399,5 @@ Delete a book.
   }
 }
 ```
+
 - **Response `404 Not Found`**: When book does not exist.

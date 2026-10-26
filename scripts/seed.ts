@@ -9,7 +9,10 @@ const __dirname = path.dirname(__filename);
 
 export async function runSeeds(): Promise<void> {
   const seedsDir = path.join(__dirname, "seeds");
-  const files = fs.readdirSync(seedsDir).filter((file) => file.endsWith(".sql")).sort();
+  const files = fs
+    .readdirSync(seedsDir)
+    .filter((file) => file.endsWith(".sql"))
+    .sort();
 
   const connection = await mysql.createConnection({
     host: process.env.DB_HOST ?? "localhost",
@@ -22,14 +25,14 @@ export async function runSeeds(): Promise<void> {
 
   try {
     for (const file of files) {
-      console.log(`[Seed] Applying seed: ${file}...`);
+      console.log(`🚀 ~ [Seed] Applying seed: ${file}...`);
       const sql = fs.readFileSync(path.join(seedsDir, file), "utf8");
       await connection.query(sql);
-      console.log(`[Seed] Seed applied successfully: ${file}`);
+      console.log(`🚀 ~ [Seed] Seed applied successfully: ${file}`);
     }
-    console.log("All seeds completed successfully.");
+    console.log("🚀 ~ All seeds completed successfully.");
   } catch (error) {
-    console.error("Seeding failed:", error);
+    console.error("🚀 ~ Seeding failed:", error);
     process.exit(1);
   } finally {
     await connection.end();
