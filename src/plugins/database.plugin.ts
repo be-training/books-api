@@ -30,9 +30,9 @@ const databasePlugin: FastifyPluginAsync = async (fastify) => {
     const connection = await pool.getConnection();
     await connection.ping();
     connection.release();
-    fastify.log.info("Connected to MySQL database successfully");
+    fastify.log.info("🚀 ~ Connected to MySQL database successfully");
   } catch (error) {
-    fastify.log.error(error, "Failed to connect to MySQL database");
+    fastify.log.error(error, "🚀 ~ Failed to connect to MySQL database");
     throw error;
   }
 
