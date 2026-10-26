@@ -1,12 +1,10 @@
 import type { FastifyPluginAsync } from "fastify";
-import { createBookRepository } from "./book.repository";
 import type {
   BookIdParams,
   CreateBookDto,
   BooksQuery,
   UpdateBookDto,
 } from "./book.types";
-import { BookService } from "./book.service";
 import {
   createBookSchema,
   deleteBookSchema,
@@ -15,12 +13,9 @@ import {
   listBooksSchema,
   updateBookSchema,
 } from "./book.schema";
-import { BookController } from "./book.controller";
 
 const bookRoutes: FastifyPluginAsync = async (app) => {
-  const repository = createBookRepository(app.db);
-  const service = new BookService(repository);
-  const controller = new BookController(service);
+  const { bookController: controller } = app.container;
 
   app.get<{ Querystring: BooksQuery }>(
     "/books",

@@ -1,38 +1,62 @@
--- Seed sample books matching UI
+-- Generate 100 sample books
 INSERT INTO books (
-  id, title, author, isbn, published_year, publisher, edition, description, total_copies, tags, status, added_on
-) VALUES
-(
-  1,
-  'The Pragmatic Programmer',
-  'David Thomas, Andrew Hunt',
-  '978-0-13-595705-9',
-  2019,
-  'Addison-Wesley',
-  '20th Anniversary Edition',
-  '[Short description of the book]',
-  5,
-  JSON_ARRAY('Programming', 'Career'),
-  'AVAILABLE',
-  '2026-09-12'
-),
-(
-  2,
-  'Clean Code',
-  'Robert C. Martin',
-  '978-0-13-235088-4',
-  2008,
-  'Prentice Hall',
-  '1st Edition',
-  'A Handbook of Agile Software Craftsmanship',
-  3,
-  JSON_ARRAY('Programming', 'Architecture'),
-  'AVAILABLE',
-  '2026-08-10'
+  id, title, author, isbn, published_year,
+  publisher, edition, description,
+  total_copies, tags, status, added_on
 )
+WITH RECURSIVE seq AS (
+  SELECT 1 AS n
+  UNION ALL
+  SELECT n + 1 FROM seq WHERE n < 100
+)
+SELECT
+  n,
+  CONCAT(
+    ELT(1 + MOD(n - 1, 10),
+      'Clean Code',
+      'The Pragmatic Programmer',
+      'Clean Architecture',
+      'Design Patterns',
+      'Refactoring',
+      'Effective TypeScript',
+      'Domain-Driven Design',
+      'Building Microservices',
+      'Code Complete',
+      'System Design Interview'
+    ),
+    ' - Volume ',
+    n
+  ),
+  CONCAT('Sample Author ', n),
+  CONCAT('DEMO-ISBN-', LPAD(n, 6, '0')),
+  2000 + MOD(n, 25),
+  ELT(1 + MOD(n - 1, 5),
+    'O''Reilly Media',
+    'Addison-Wesley',
+    'Prentice Hall',
+    'Manning Publications',
+    'MIT Press'
+  ),
+  '1st Edition',
+  CONCAT('Sample description for book ', n),
+  2 + MOD(n, 5),
+  JSON_ARRAY(
+    ELT(1 + MOD(n - 1, 5),
+      'Programming',
+      'Architecture',
+      'Database',
+      'Testing',
+      'System Design'
+    )
+  ),
+  'AVAILABLE',
+  DATE_ADD('2026-08-01', INTERVAL MOD(n, 60) DAY)
+FROM seq
 ON DUPLICATE KEY UPDATE
   title = VALUES(title),
   author = VALUES(author),
+  isbn = VALUES(isbn),
+  published_year = VALUES(published_year),
   publisher = VALUES(publisher),
   edition = VALUES(edition),
   description = VALUES(description),
@@ -41,18 +65,50 @@ ON DUPLICATE KEY UPDATE
   status = VALUES(status),
   added_on = VALUES(added_on);
 
--- Seed loan history for book 1 matching UI table
-INSERT INTO book_loans (
-  id, book_id, member_id, member_name, borrowed_date, due_date, returned_date, status
-) VALUES
-(1, 1, 101, 'Minh Tran', '2026-10-15', '2026-10-29', NULL, 'ACTIVE'),
-(2, 1, 102, 'Lan Pham', '2026-10-02', '2026-10-16', NULL, 'OVERDUE'),
-(3, 1, 103, 'Huy Nguyen', '2026-10-10', '2026-10-24', NULL, 'ACTIVE'),
-(4, 1, 104, 'Thao Le', '2026-09-20', '2026-10-04', '2026-10-03', 'RETURNED'),
-(5, 1, 105, 'Khoa Vo', '2026-09-01', '2026-09-15', '2026-09-14', 'RETURNED')
+  INSERT INTO book_loans (
+  id, book_id, member_id, member_name,
+  borrowed_date, due_date, returned_date, status
+)
+WITH RECURSIVE seq AS (
+  SELECT 1 AS n
+  UNION ALL
+  SELECT n + 1 FROM seq WHERE n < 30
+)
+SELECT
+  n,
+  1 + MOD(n - 1, 20),
+  100 + n,
+  CONCAT('Sample Member ', n),
+  DATE_ADD('2026-09-01', INTERVAL n DAY),
+  DATE_ADD('2026-09-15', INTERVAL n DAY),
+  CASE
+    WHEN MOD(n, 3) = 0
+      THEN DATE_ADD('2026-09-14', INTERVAL n DAY)
+    ELSE NULL
+  END,
+  CASE
+    WHEN MOD(n, 3) = 0 THEN 'RETURNED'
+    WHEN MOD(n, 3) = 1 THEN 'ACTIVE'
+    ELSE 'OVERDUE'
+  END
+FROM seq
 ON DUPLICATE KEY UPDATE
+  book_id = VALUES(book_id),
+  member_id = VALUES(member_id),
   member_name = VALUES(member_name),
   borrowed_date = VALUES(borrowed_date),
   due_date = VALUES(due_date),
   returned_date = VALUES(returned_date),
   status = VALUES(status);
+
+SELECT COUNT(*) AS total_books FROM books;
+
+SELECT COUNT(*) AS total_loans FROM book_loans;
+
+SELECT id, title, author, status
+FROM books
+ORDER BY id;
+
+SELECT id, book_id, member_name, due_date, status
+FROM book_loans
+ORDER BY id;

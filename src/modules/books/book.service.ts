@@ -47,7 +47,7 @@ export class BookService {
       (page - 1) * limit,
       limit,
     );
-    return paginatedResponse(rows.map(mapToBookDto), total, page, limit);
+    return paginatedResponse(rows.map(mapToBookDto), page, limit, total);
   }
 
   async getBookById(id: number): Promise<BookDetailDto> {
