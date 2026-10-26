@@ -1,5 +1,6 @@
 import Fastify, { FastifyInstance } from "fastify";
 import databasePlugin from "./plugins/database.plugin.js";
+import containerPlugin from "./plugins/container.plugin.js";
 import requestIdPlugin from "./plugins/request-id.plugin.js";
 import errorHandlerPlugin from "./plugins/error-handler.plugin.js";
 import apiRoutes from "./routes/index.js";
@@ -20,6 +21,7 @@ export function buildApp(): FastifyInstance {
   void app.register(requestIdPlugin);
   void app.register(errorHandlerPlugin);
   void app.register(databasePlugin);
+  void app.register(containerPlugin);
 
   app.register(apiRoutes, { prefix: API_PREFIX });
 
